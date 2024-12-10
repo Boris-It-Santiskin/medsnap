@@ -1,5 +1,6 @@
 from dataclasses import field
 
+from autoslug.utils import slugify
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext as _
@@ -8,6 +9,7 @@ from django.utils.translation import gettext as _
 # Create your models here.
 
 class AbstractClinicalEmployee(AbstractUser):
+
     class Meta:
         verbose_name = "Clinical Employee"
         verbose_name_plural = "Clinical Employees"
@@ -28,6 +30,13 @@ class AbstractClinicalEmployee(AbstractUser):
         dr = 'DR', 'DR'
         reception = 'RECEPTION', 'RECEPTION'
 
+    username = models.CharField(
+        unique=False,
+        blank=True,
+        null=True
+    )
+
+
     contact_number = models.CharField()
 
     is_staff = models.BooleanField(
@@ -36,9 +45,13 @@ class AbstractClinicalEmployee(AbstractUser):
         help_text=_("Designates whether the user can log into this admin site."),
     )
 
+    employee_type = models.CharField(choices=EmployeeType, default='DR')
 
-    #employee_type = models.CharField(choices=EmployeeType, default='DR')
 
+
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} {self.employee_type}"
 
 class DRClinicalEmployee(AbstractClinicalEmployee):
     class Meta:
@@ -51,3 +64,16 @@ class DRClinicalEmployee(AbstractClinicalEmployee):
         null=False,
         help_text=_("A unique identifier for the medical order assigned to this user. This ID is used to track the user's medical orders.")
     )
+
+
+    def __str__(self):
+        return f"Dr {self.first_name} {self.last_name} {self.medical_order_ID}"
+
+
+class ReceptionsClinicalEmployee(AbstractClinicalEmployee):
+    class Meta:
+        verbose_name = "Reception Assistant"
+        verbose_name_plural = "Reception's Assistant"
+
+    def __str__(self):
+        return f"(Reception) {self.first_name} {self.last_name}"

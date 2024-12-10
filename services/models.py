@@ -1,6 +1,14 @@
+import random
+import string
+from datetime import datetime
 from email.policy import default
 from random import choices
 
+
+from django.db.models import CASCADE
+from django.utils.timezone import now
+from employees.models import DRClinicalEmployee, AbstractClinicalEmployee, ReceptionsClinicalEmployee
+from customer.models import Customers
 
 from django.db import models
 
@@ -37,11 +45,74 @@ class Services(models.Model):
         HAIR_MEDICINE_AND_TRICHOLOGY = 'HAIR_MEDICINE_AND_TRICHOLOGY', 'Hair Medicine and Trichology'
         COSMETIC_MICROSURGERY = 'COSMETIC_MICROSURGERY', 'Consultation for Cosmetic Microsurgery'
 
+    class StatusOptions(models.TextChoices):
+        pending = "PENDING", "PENDING"
+        canceled = "CANCELED", "CANCELED"
+        confirmed = "CONFIRMED", "CONFIRMED"
+        done = "DONE", "DONE"
 
     scheduling_date = models.DateField()
+
     scheduling_time = models.TimeField()
-    medication_consultation = models.CharField(choices=MedicalConsultations, default="Change a consultation")
+
+    reserved_at = models.DateTimeField(default=now)
+
+    reserved_by = models.ForeignKey(
+        ReceptionsClinicalEmployee,
+        related_name="+",
+        on_delete=models.RESTRICT,
+    )
+
+    medication_consultation = models.CharField(
+        choices=MedicalConsultations,
+        default=MedicalConsultations.MICRONUTRIENTS
+    )
+
     price = models.FloatField()
 
+    dr_id = models.ForeignKey(
+        DRClinicalEmployee,
+        related_name="+",
+        on_delete= models.RESTRICT,
+    )
 
-    scheduling_id = models.SlugField()
+    customer_id = models.ForeignKey(
+        Customers,
+        related_name="+",
+        on_delete=models.RESTRICT,
+    )
+
+    status = models.CharField(
+        choices=StatusOptions,
+        default=StatusOptions.pending
+    )
+
+
+    comments = models.TextField(
+        blank=True,
+        null=True
+    )
+
+
+    scheduling_id = models.CharField(
+        max_length=10
+    )
+
+    def scheduling_id_generator(self):
+        res = ''
+        rand_digits = string.ascii_letters + string.digits
+        for obj in range(7):
+            new_digit = random.choices(rand_digits)[0]
+            res += new_digit
+            print('++++Scheduling ID has been generated', res)
+        return res
+
+    def getter_scheduling_id_generator(self):
+        return self.scheduling_id_generator()
+
+
+    def save(self,*args,**kwargs):
+        if not self.scheduling_id:
+            self.scheduling_id = self.generate_scheduling_id()
+        super().save(*args, **kwargs)
+
