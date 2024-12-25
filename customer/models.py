@@ -16,6 +16,7 @@ class Customers(models.Model):
 
     email = models.EmailField(
         max_length=256,
+        blank=True
     )
     tel = models.CharField(null=True, blank=True)
     nif = models.CharField(null=True, blank=True)
@@ -27,7 +28,7 @@ class Customers(models.Model):
 
     birthday = models.DateField(null=True, blank=True, default="1900-01-01")
 
-    slug = models.SlugField(max_length=256, unique=True, blank=True)
+    slug = models.SlugField(max_length=256)
 
     updated = models.DateTimeField(
         auto_now=True

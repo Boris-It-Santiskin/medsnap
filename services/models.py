@@ -53,9 +53,10 @@ class Services(models.Model):
 
     scheduling_date = models.DateField()
 
-    scheduling_time = models.TimeField()
+    scheduling_time_start = models.TimeField()
+    scheduling_time_finish = models.TimeField()
 
-    reserved_at = models.DateTimeField(default=now)
+    reserved_on = models.DateTimeField(default=now)
 
     reserved_by = models.ForeignKey(
         ReceptionsClinicalEmployee,
@@ -86,6 +87,8 @@ class Services(models.Model):
         choices=StatusOptions,
         default=StatusOptions.pending
     )
+
+    old_procedures = models.CharField(max_length=256)
 
 
     comments = models.TextField(
