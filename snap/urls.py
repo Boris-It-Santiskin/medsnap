@@ -19,5 +19,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('snap/api/v1/', include('.snap/employees/urls'))
+    path('snap/api/v1/', include('employees.urls'))
 ]
