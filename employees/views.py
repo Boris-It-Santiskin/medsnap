@@ -4,6 +4,8 @@ from django.views import View
 from rest_framework import generics
 from django.http import HttpResponse, JsonResponse
 
+from django.contrib.auth.hashers import make_password
+
 from .serializer import AbstractClinicalEmployeeSerializer
 from  .models import *
 
@@ -30,7 +32,7 @@ class LoginView(View):  # Use a distinct name for the view
     def get(self, request):
         form = LoginForm()  # Instantiate the form
         context = {
-            'title': 'login',
+            'title': 'Login',
             'form': form,
             'button_submit':'Login'
         }
@@ -61,15 +63,51 @@ class LogoutView(View):
         return redirect('main:index')  # Replace 'login' with the name of your login URL pattern
 
 
-class RegisterView(CreateView):
-    form_class = RegisterForm
-    template_name = "register.html"
-    success_url = reverse_lazy("<app_name>:<view_name>")
+class RegisterView(View):
+    '''
+    registration class
+    '''
 
-    def form_valid(self, form):
-        user = form.save()
+    def get(self, requests):
+        '''
+        get method for printing form
+        :param requests:
+        :return rendered page with a form for registration:
+        '''
+        form = RegisterForm()
+        if form:
+            context = {
+                'title': 'Registration',
+                'title_form': 'registration new employee',
+                'form': form,
+                'button_submit': 'Register'
+            }
+            return render(requests, 'employeers_form_template.html', context=context)
 
-        if user:
-            login(self.request, user)
 
-        return super().form_valid(form)
+    def post(self, requests):
+        form = RegisterForm(data=requests.POST)
+        if form.is_valid():
+            cd = form.cleaned_data
+
+
+            print('/+/+/+',requests, cd, make_password(cd['password1']))
+            new_employee = AbstractClinicalEmployee(
+                email=cd['email'],
+                password=make_password(cd['password1']),
+                first_name=cd['first_name'],
+                last_name=cd['last_name'],
+                contact_number=cd['contact_number'],
+                employee_type=cd['employee_type'],
+                gender_employee=cd['gender_employee'],
+                is_staff=True
+            )
+
+
+            new_employee.save()
+            print(new_employee, new_employee.__dict__)
+            return HttpResponse(f'form is valid: {form.is_valid()} \n Requests.POST: {cd}')
+        print('/-/-/-')
+        return HttpResponse(f'Form does not valid or resquests does not POST---{form}')
+
+
